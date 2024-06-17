@@ -2,7 +2,7 @@ import { AcoesService } from './acoes.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { merge } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { filter, switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-acoes',
@@ -16,12 +16,20 @@ export class AcoesComponent {
       console.log('Fluxo inicial');
     })
   );
-  filtroPeloInput$ = this.acoesInput.valueChanges.pipe(
+  private _filtroPeloInput$ = this.acoesInput.valueChanges.pipe(
     tap(() => {
       console.log('Fluxo do Filtro');
     }),
+    tap(console.log),
+    filter((valorDigitado) => valorDigitado.length >= 3 || !valorDigitado.length),
     switchMap((valorDigitado) => this.acoesService.getAcoes(valorDigitado))
   );
+  public get filtroPeloInput$() {
+    return this._filtroPeloInput$;
+  }
+  public set filtroPeloInput$(value) {
+    this._filtroPeloInput$ = value;
+  }
 
   acoes$ = merge(this.todasAcoes$, this.filtroPeloInput$);
   constructor(private acoesService: AcoesService) { }
